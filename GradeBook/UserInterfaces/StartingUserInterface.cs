@@ -1,5 +1,6 @@
 ﻿using GradeBook.GradeBooks;
 using System;
+using System.Collections.Generic;
 
 namespace GradeBook.UserInterfaces
 {
@@ -30,20 +31,34 @@ namespace GradeBook.UserInterfaces
             else
                 Console.WriteLine("{0} was not recognized, please try again.", command);
         }
-
         public static void CreateCommand(string command)
         {
             var parts = command.Split(' ');
-            if (parts.Length != 2)
+            if (parts.Length != 3)
             {
-                Console.WriteLine("Command not valid, Create requires a name.");
+                Console.WriteLine("Command not valid, Create requires a name and type of gradebook.");
                 return;
             }
             var name = parts[1];
-            BaseGradeBook gradeBook = new BaseGradeBook(name);
+            var typeString = parts[2];
+
+            var gradeBookTypeMap = new Dictionary<string, Type>()
+            {
+                {"standard", typeof(StandardGradeBook)},
+                {"ranked", typeof(RankedGradeBook)}
+            };
+
+            if (!gradeBookTypeMap.TryGetValue(typeString.ToLower(), out var type))
+            {
+                Console.WriteLine("{0} is not a supported type of gradebook, please try again", typeString);
+                return;
+            }
+
+            var gradeBook = (BaseGradeBook)Activator.CreateInstance(type, name);
             Console.WriteLine("Created gradebook {0}.", name);
             GradeBookUserInterface.CommandLoop(gradeBook);
         }
+
 
         public static void LoadCommand(string command)
         {
